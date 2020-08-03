@@ -107,7 +107,7 @@ class Sentence():
         Returns the set of all cells in self.cells known to be mines.
         """
         if len(self.cells) == self.count:
-            return self.cell
+            return self.cells
         else:
             return set()
 
@@ -280,8 +280,9 @@ class MinesweeperAI():
         print(f"cell: {cell} \n")
         unknown_neighbours = self.neighbours_unknown(cell)
 
+        new_sentence = Sentence(unknown_neighbours,count)
 
-        self.knowledge.append(Sentence(unknown_neighbours,count))
+        self.knowledge.append(new_sentence)
 
 #If, based on any of the sentences in self.knowledge,
 #new cells can be marked as safe or as mines, then the function should do so.
@@ -314,7 +315,7 @@ class MinesweeperAI():
         for mine_cell in mine_sub:
             self.mark_mine(mine_cell)
 
-            # 
+            #
             # for sentence in self.knowledge:
             #
             #     # if the count is zero, then mark all cells as safe
@@ -338,18 +339,49 @@ class MinesweeperAI():
 
         #update/add knowledge based subset method
 
+        tknowledge = list(self.knowledge)
+
+        print(f"knowledge: {tknowledge} \n")
+
+        #current_sentence = next_sentence
+
+        set1 = new_sentence.cells
+        count1 = new_sentence.count
+            # set1 = self.knowledge[0].cells
+            # count1 = self.knowledge[0].count
+
+        inferred_sentences = []
+
+
         for sentence in self.knowledge:
+            print(f"set1: {set1} \n")
+            print(f"count1: {count1} \n")
+            if len(sentence.cells) ==  0:
+                self.knowledge.remove(sentence)
+
+            elif set1 == sentence.cells:
+                break
+            else:
+                set2 = sentence.cells
+                count2 = sentence.count
+                print(f"set2: {set2} \n")
+                print(f"count2: {count2} \n")
+                if set1.issubset(set2):
+                    new_sentence = Sentence((set2-set1), (count2 - count1))
+                    print(f"new sentence: {new_sentence} \n")
+                    inferred_sentences.append(new_sentence)
+                    print(f"inffered sentences: {inferred_sentences} \n")
 
             set1 = sentence.cells
             count1 = sentence.count
-            for sentence in self.knowledge:
-                if sentence.cells != set1:
-                    set2 = sentence.cells
-                    count2 = sentence.count
 
-                    if set1.issubset(set2):
-                        new_sentence = Sentence((set2-set1), (count2 - count1))
-                        self.knowledge.append(new_sentence)
+
+        for sentence in inferred_sentences:
+            self.knowledge.append(sentence)
+
+
+
+
 
 
 
@@ -369,6 +401,7 @@ class MinesweeperAI():
 
         safe_moves = self.safes - self.moves_made
         print(f"safe moves: {safe_moves} \n")
+        print(f"known mines: {self.mines} \n")
 
         if len(safe_moves) > 0:
 
