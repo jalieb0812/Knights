@@ -1,6 +1,7 @@
 import itertools
 from itertools import *
 import random
+import copy
 
 
 class Minesweeper():
@@ -107,19 +108,17 @@ class Sentence():
         Returns the set of all cells in self.cells known to be mines.
         """
         if len(self.cells) == self.count:
-            return set(self.cells)
+            return copy.deepcopy(self.cells)
         else:
             return set()
 
-
-        raise NotImplementedError
 
     def known_safes(self):
         """
         Returns the set of all cells in self.cells known to be safe.
         """
-        if self.count <= 0:
-            return set(self.cells)
+        if self.count < 1:
+            return copy.deepcopy(self.cells)
         else:
             return set()
 
@@ -139,8 +138,8 @@ class Sentence():
         """
 
         #if cell not in sentence then do nohting
-        if cell not in self.cells:
-            pass
+            # if cell not in self.cells:
+            #     pass
 
         #if cell in sentence, remove cell and reduce count
         if cell in self.cells:
@@ -163,8 +162,8 @@ class Sentence():
         If cell is not in the sentence, then no action is necessary.
         """
         #if cell not in sentence then do nohting
-        if cell not in self.cells:
-            pass
+            # if cell not in self.cells:
+            #     pass
 
         #if cell in sentence, remove cell and reduce count
         if cell in self.cells:
@@ -248,7 +247,7 @@ class MinesweeperAI():
         unkown_neighbours = set()
 
         for cell in all_neighbours:
-            if cell not in self.mines and cell not in self.safes and cell not in self.moves_made:
+            if cell not in self.mines and cell not in self.safes:
                 unkown_neighbours.add(cell)
 
         return unkown_neighbours
@@ -282,19 +281,70 @@ class MinesweeperAI():
 
         print(f"cell: {cell} \n")
         print(f"count: {count} \n")
-        unknown_neighbours = self.neighbours_unknown(cell)
+        neighbours = self.neighbours(cell)
+
+
 
 
         #if unknown_neighbours:
-        new_sentence = Sentence(unknown_neighbours,count)
-        print(f"new __ sentence: {new_sentence} \n")
 
-        if new_sentence.cells != set():
-            self.knowledge.append(new_sentence)
+        if len(neighbours) > 0:
+            new_sentence = Sentence(neighbours,count)
+            for mine in self.mines:
+                new_sentence.mark_mine(mine)
+            for safe in self.safes:
+                new_sentence.mark_safe(safe)
+            print(f"new __ sentence: {new_sentence} \n")
+            if new_sentence.cells != set():
+
+                self.knowledge.append(new_sentence)
+
+
+                #check for new safes
+        for sentence in self.knowledge:
+            if sentence.count == 0:
+                copy_cells = copy.deepcopy(sentence.cells)
+                print(f"sentence full of safe cells: {sentence} \n")
+                for cell in copy_cells:
+
+                    self.mark_safe(cell)
+                self.knowledge.remove(sentence)
+        print(f"safe cells all: {self.safes} \n")
+        print(f"safe cells without: {self.safes - self.moves_made} \n")
+
+        #check for mines
 
         for sentence in self.knowledge:
-            if sentence.cells == set():
+
+            if len(sentence.cells) == sentence.count:
+                copy_cells = copy.deepcopy(sentence.cells)
+                print(f"sentence full of mines: {sentence} \n")
+                for cell in copy_cells:
+                    self.mark_mine(cell)
                 self.knowledge.remove(sentence)
+        print(f"known_mines: {self.mines} \n")
+
+
+
+        """ just now
+        for sentence in self.knowledge:
+            if len(sentence.cells) == 0:
+
+                self.knowledge.remove(sentence)
+        """
+
+        """
+    #get rid of duplicate sentences
+        no_duplicates_knowlegde = []
+        for i in self.knowledge:
+            if i not in no_duplicates_knowlegde:
+                no_duplicates_knowlegde.append(i)
+
+        #no_duplicates_knowlegde = list(dict.fromkeys(self.knowledge))
+
+        self.knowledge = copy.deepcopy(no_duplicates_knowlegde)
+        """
+
 
 
 
@@ -302,9 +352,36 @@ class MinesweeperAI():
 #new cells can be marked as safe or as mines, then the function should do so.
 
 
+
+        """ was working with this one
         safe_sub = set()
         mine_sub = set()
 
+        for sentence in self.knowledge:
+        #remove empy sentences
+            if len(sentence.cells) == 0:
+                self.knowledge.remove(sentence)
+
+            else:
+                for cell in self.safes:
+
+            #add any new discovered safe spaces
+                    safes = sentence.known_safes()
+                    mines = sentence.known_mines()
+
+                    safe_sub |= safes
+                    mine_sub |= mines
+        for safe_cell in safe_sub:
+            self.mark_safe(safe_cell)
+
+    #add any new discovered mine spaces
+
+        for mine_cell in mine_sub:
+            self.mark_mine(mine_cell)
+
+
+        """
+        """
         copy_knowledge = self.knowledge.copy()
         for sentence in copy_knowledge:
             safes_known = sentence.known_safes()
@@ -319,8 +396,17 @@ class MinesweeperAI():
                 for mine in mines_known.union(self.mines):
                     self.mark_mine(mine)
 
-        print(f"safe cells: {self.safes - self.moves_made} \n")
-        print(f"known_mines: {self.mines} \n")
+        """
+
+
+
+
+
+        """
+        for sentence in self.knowledge:
+            if len(sentence.cells) == 0:
+                self.knowledge.remove(sentence)
+        """
         for i in range(len(self.knowledge)):
             print(f"tknowledgeeee{i}: {self.knowledge[i]} \n")
 
@@ -331,24 +417,88 @@ class MinesweeperAI():
             # count1 = self.knowledge[0].count
 
         inferred_sentences = []
-        """
 
-        """
 
-        copy_knowledge = self.knowledge
+        copy_knowledge = copy.deepcopy(self.knowledge)
 
         for set1 in self.knowledge:
-            print(f"set1: {set1} \n")
+            #print(f"set1: {set1} \n")
+            #copy_knowledge.remove(set1)
             for set2 in copy_knowledge:
+
                 #print(f"set2: {set2} \n")
-                if set1.cells != set() and set1 != set2 and set2.cells.issubset(set1.cells):
+                if set1.cells != set() and set2.cells != set() and set1 != set2 and set2.cells.issubset(set1.cells):
                     cells = set1.cells - set2.cells
                     count = set1.count - set2.count
                     new_sentence = Sentence(cells, count)
-                    print(f"implied sentence: {new_sentence} \n")
-                    inferred_sentences.append(new_sentence)
+                    print(f"implied sentence set2 subset of set 1: {new_sentence} \n")
+                    if new_sentence not in self.knowledge and len(new_sentence.cells) != 0:
+                        inferred_sentences.append(new_sentence)
+
+                
+
         self.knowledge += inferred_sentences
 
+
+                    #check for new safes
+        for sentence in self.knowledge:
+            if sentence.count == 0:
+                copy_cells = copy.deepcopy(sentence.cells)
+                print(f"sentence full of safe cells: {sentence} \n")
+                for cell in copy_cells:
+
+                    self.mark_safe(cell)
+                self.knowledge.remove(sentence)
+        print(f" new safe cells all: {self.safes} \n")
+        print(f"new safe cells without: {self.safes - self.moves_made} \n")
+
+        #check for mines
+
+        for sentence in self.knowledge:
+
+            if len(sentence.cells) == sentence.count:
+                copy_cells = copy.deepcopy(sentence.cells)
+                print(f"sentence full of mines: {sentence} \n")
+                for cell in copy_cells:
+                    self.mark_mine(cell)
+                self.knowledge.remove(sentence)
+        print(f"new known_mines: {self.mines} \n")
+
+        """# check for new implication
+        safe_sub = set()
+        mine_sub = set()
+
+        for sentence in self.knowledge:
+        #remove empy sentences
+            if len(sentence.cells) == 0:
+                self.knowledge.remove(sentence)
+
+            else:
+                for cell in self.safes:
+
+
+                    safes = sentence.known_safes()
+                    mines = sentence.known_mines()
+
+                    safe_sub |= safes
+                    mine_sub |= mines
+
+    #add any new discovered safe spaces
+        for safe_cell in safe_sub:
+            self.mark_safe(safe_cell)
+        print(f"new safe cells2 without: {self.safes - self.moves_made} \n")
+
+    #add any new discovered mine spaces
+
+        for mine_cell in mine_sub:
+            self.mark_mine(mine_cell)
+        print(f"new known_mines2: {self.mines} \n")
+        """
+        #remove empy senteces
+        for sentence in self.knowledge:
+            if sentence == Sentence(set(), 0):
+                self.knowledge.remove(sentence)
+        """
             # for set1 in self.knowledge:
             #     print(f"set1: {set1} \n")
             #     for set2 in self.knowledge:
@@ -368,19 +518,11 @@ class MinesweeperAI():
             #
             # for sentence in inferred_sentences:
             #     self.knowledge.append(sentence)
-
-
         """
-    #get rid of duplicate sentences
-        no_duplicates_knowlegde = []
-        for i in self.knowledge:
-            if i not in no_duplicates_knowlegde:
-                no_duplicates_knowlegde.append(i)
 
-        #no_duplicates_knowlegde = list(dict.fromkeys(self.knowledge))
 
-        self.knowledge = no_duplicates_knowlegde
-        """
+
+
 
 
 
@@ -397,7 +539,7 @@ class MinesweeperAI():
         and self.moves_made, but should not modify any of those values.
         """
 
-        smoves= self.safes
+        #smoves= self.safes
         #print (f"smoves: {smoves}\n ")
         #print (f"moves made: {self.moves_made}\n ")
 
@@ -407,9 +549,11 @@ class MinesweeperAI():
 
         if len(safe_moves) > 0:
 
+            safe_move = safe_moves.pop()
+
             #safe_move = random.sample(safe_moves, k=1)
-            #print(f"safe move: {safe_move} \n")
-            return safe_moves.pop()
+            print(f"safe move: {safe_move} \n")
+            return safe_move
 
         if len(safe_moves) <= 0:
             return None
