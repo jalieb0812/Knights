@@ -1,8 +1,8 @@
-import itertools
 from itertools import *
 import random
 import copy
 
+""" jordan lieber cs50ai project1b minesweeper"""
 
 class Minesweeper():
     """
@@ -285,11 +285,9 @@ class MinesweeperAI():
 
 
 
-
-        #if unknown_neighbours:
-
         if len(neighbours) > 0:
             new_sentence = Sentence(neighbours,count)
+            #update sentence and count
             for mine in self.mines:
                 new_sentence.mark_mine(mine)
             for safe in self.safes:
@@ -304,13 +302,13 @@ class MinesweeperAI():
         for sentence in self.knowledge:
             if sentence.count == 0:
                 copy_cells = copy.deepcopy(sentence.cells)
-                print(f"sentence full of safe cells: {sentence} \n")
+                #print(f"sentence full of safe cells: {sentence} \n")
                 for cell in copy_cells:
 
                     self.mark_safe(cell)
                 self.knowledge.remove(sentence)
-        print(f"safe cells all: {self.safes} \n")
-        print(f"safe cells without: {self.safes - self.moves_made} \n")
+        print(f"safe cells: {self.safes - self.moves_made} \n")
+        print(f"moves made: {self.moves_made} \n")
 
         #check for mines
 
@@ -318,7 +316,7 @@ class MinesweeperAI():
 
             if len(sentence.cells) == sentence.count:
                 copy_cells = copy.deepcopy(sentence.cells)
-                print(f"sentence full of mines: {sentence} \n")
+                #print(f"sentence full of mines: {sentence} \n")
                 for cell in copy_cells:
                     self.mark_mine(cell)
                 self.knowledge.remove(sentence)
@@ -326,95 +324,12 @@ class MinesweeperAI():
 
 
 
-        """ just now
-        for sentence in self.knowledge:
-            if len(sentence.cells) == 0:
-
-                self.knowledge.remove(sentence)
-        """
-
-        """
-    #get rid of duplicate sentences
-        no_duplicates_knowlegde = []
-        for i in self.knowledge:
-            if i not in no_duplicates_knowlegde:
-                no_duplicates_knowlegde.append(i)
-
-        #no_duplicates_knowlegde = list(dict.fromkeys(self.knowledge))
-
-        self.knowledge = copy.deepcopy(no_duplicates_knowlegde)
-        """
 
 
-
-
-#If, based on any of the sentences in self.knowledge,
-#new cells can be marked as safe or as mines, then the function should do so.
-
-
-
-        """ was working with this one
-        safe_sub = set()
-        mine_sub = set()
-
-        for sentence in self.knowledge:
-        #remove empy sentences
-            if len(sentence.cells) == 0:
-                self.knowledge.remove(sentence)
-
-            else:
-                for cell in self.safes:
-
-            #add any new discovered safe spaces
-                    safes = sentence.known_safes()
-                    mines = sentence.known_mines()
-
-                    safe_sub |= safes
-                    mine_sub |= mines
-        for safe_cell in safe_sub:
-            self.mark_safe(safe_cell)
-
-    #add any new discovered mine spaces
-
-        for mine_cell in mine_sub:
-            self.mark_mine(mine_cell)
-
-
-        """
-        """
-        copy_knowledge = self.knowledge.copy()
-        for sentence in copy_knowledge:
-            safes_known = sentence.known_safes()
-            mines_known = sentence.known_mines()
-
-            if safes_known:
-                self.safes |= safes_known
-                self.knowledge.remove(sentence)
-
-            if mines_known:
-                self.knowledge.remove(sentence)
-                for mine in mines_known.union(self.mines):
-                    self.mark_mine(mine)
-
-        """
-
-
-
-
-
-        """
-        for sentence in self.knowledge:
-            if len(sentence.cells) == 0:
-                self.knowledge.remove(sentence)
-        """
         for i in range(len(self.knowledge)):
-            print(f"tknowledgeeee{i}: {self.knowledge[i]} \n")
+            print(f"knowledge{i}: {self.knowledge[i]} \n")
 
 
-
-
-            # set1 = self.knowledge[0].cells
-            # count1 = self.knowledge[0].count
 
         inferred_sentences = []
 
@@ -435,7 +350,7 @@ class MinesweeperAI():
                     if new_sentence not in self.knowledge and len(new_sentence.cells) != 0:
                         inferred_sentences.append(new_sentence)
 
-                
+
 
         self.knowledge += inferred_sentences
 
@@ -444,13 +359,13 @@ class MinesweeperAI():
         for sentence in self.knowledge:
             if sentence.count == 0:
                 copy_cells = copy.deepcopy(sentence.cells)
-                print(f"sentence full of safe cells: {sentence} \n")
+                #print(f"sentence full of safe cells: {sentence} \n")
                 for cell in copy_cells:
 
                     self.mark_safe(cell)
                 self.knowledge.remove(sentence)
-        print(f" new safe cells all: {self.safes} \n")
-        print(f"new safe cells without: {self.safes - self.moves_made} \n")
+        #print(f" new safe cells all: {self.safes} \n")
+        print(f"new safe cells: {self.safes - self.moves_made} \n")
 
         #check for mines
 
@@ -458,76 +373,17 @@ class MinesweeperAI():
 
             if len(sentence.cells) == sentence.count:
                 copy_cells = copy.deepcopy(sentence.cells)
-                print(f"sentence full of mines: {sentence} \n")
+                #print(f"sentence full of mines: {sentence} \n")
                 for cell in copy_cells:
                     self.mark_mine(cell)
                 self.knowledge.remove(sentence)
         print(f"new known_mines: {self.mines} \n")
 
-        """# check for new implication
-        safe_sub = set()
-        mine_sub = set()
 
-        for sentence in self.knowledge:
-        #remove empy sentences
-            if len(sentence.cells) == 0:
-                self.knowledge.remove(sentence)
-
-            else:
-                for cell in self.safes:
-
-
-                    safes = sentence.known_safes()
-                    mines = sentence.known_mines()
-
-                    safe_sub |= safes
-                    mine_sub |= mines
-
-    #add any new discovered safe spaces
-        for safe_cell in safe_sub:
-            self.mark_safe(safe_cell)
-        print(f"new safe cells2 without: {self.safes - self.moves_made} \n")
-
-    #add any new discovered mine spaces
-
-        for mine_cell in mine_sub:
-            self.mark_mine(mine_cell)
-        print(f"new known_mines2: {self.mines} \n")
-        """
         #remove empy senteces
         for sentence in self.knowledge:
             if sentence == Sentence(set(), 0):
                 self.knowledge.remove(sentence)
-        """
-            # for set1 in self.knowledge:
-            #     print(f"set1: {set1} \n")
-            #     for set2 in self.knowledge:
-            #         print(f"set2: {set2} \n")
-            #         if set1 != set2:
-            #             if set1.cells.issubset(set2.cells):
-            #                 new_sentence = Sentence((set2.cells-set1.cells), (set2.count - set1.count))
-            #                 print(f"new sentence: {new_sentence} \n")
-            #                 inferred_sentences.append(new_sentence)
-
-
-
-
-            # for i in range(len(inferred_sentences)):
-            #     print(f"inferred_sentences{i}: {inferred_sentences[i]} \n")
-            #
-            #
-            # for sentence in inferred_sentences:
-            #     self.knowledge.append(sentence)
-        """
-
-
-
-
-
-
-
-
-        #raise NotImplementedError
 
     def make_safe_move(self):
         """
@@ -539,13 +395,10 @@ class MinesweeperAI():
         and self.moves_made, but should not modify any of those values.
         """
 
-        #smoves= self.safes
-        #print (f"smoves: {smoves}\n ")
-        #print (f"moves made: {self.moves_made}\n ")
+
 
         safe_moves = self.safes - self.moves_made
-        #print(f"safe moves: {safe_moves} \n")
-        #print(f"known mines: {self.mines} \n")
+
 
         if len(safe_moves) > 0:
 
